@@ -296,6 +296,7 @@ class GetTranslation(webapp2.RequestHandler):
 
         if len(translations) > 0:
           self._render_template(translations[0])
+          self._insert_item(translations[0].original, translations[0].translated)
         else:
           self._render_error_template(original)
 
@@ -313,6 +314,22 @@ class GetTranslation(webapp2.RequestHandler):
         template_values = { 'original': original }
         template = jinja_environment.get_template('templates/translated-error.html')
         self.response.out.write(template.render(template_values))
+
+    @util.auth_required
+    def _insert_item(self, original, translated):
+        """Insert a timeline item."""
+        
+        template_values = { 'original': original,
+                            'translated': translated }
+        template = jinja_environment.get_template('templates/translation-card.html')
+        html = template.render(template_values)
+        body = {
+            'html': html,
+            'notification': {'level': 'DEFAULT'}
+        }
+        
+        # Send to glass timeline
+        self.mirror_service.timeline().insert(body=body).execute()
 
 
 MAIN_ROUTES = [
