@@ -1,4 +1,5 @@
 <article>
+
   <section>
     <div class="layout-two-column">
       <div class="align-center">
@@ -11,4 +12,14 @@
       </div>
     </div>
   </section>
+
+  {% if is_quiz %}
+  <footer>
+    <div>
+      <img src="http://glassdictionary.appspot.com/static/images/mic_18x24.png" width="18" height="24" style="padding-bottom: 0;">
+      <span>Practice time!</span>
+    </div>
+  </footer>
+  {% endif %}
+
  </article>

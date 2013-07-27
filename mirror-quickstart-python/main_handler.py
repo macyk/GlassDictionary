@@ -335,9 +335,50 @@ class GetTranslation(webapp2.RequestHandler):
         # Send to glass timeline
         self.mirror_service.timeline().insert(body=body).execute()
 
+###########################
+## Quiz time
+###########################
+
+class QuizHandler(webapp2.RequestHandler):
+    """Request Handler for the start of a quiz."""
+
+    def get(self):
+        """Render the results for a specific translation."""
+        
+        original = self.request.get('original')
+        self._render_template(original)
+        self._insert_item(original)
+
+
+    def _render_template(self, original=None):
+        """Render the results page template."""
+
+        template_values = { 'original': original,
+                            'translated': '???' }
+        template = jinja_environment.get_template('templates/quiz.html')
+        self.response.out.write(template.render(template_values))
+
+    @util.auth_required
+    def _insert_item(self, original):
+        """Insert a timeline item."""
+
+        template_values = { 'original': original,
+                            'translated': '???',
+                            'is_quiz': True }
+        template = jinja_environment.get_template('templates/translation-card.html')
+        html = template.render(template_values)
+        body = {
+            'html': html,
+            'notification': {'level': 'DEFAULT'}
+        }
+        
+        # Send to glass timeline
+        self.mirror_service.timeline().insert(body=body).execute()
+
 
 MAIN_ROUTES = [
     ('/', MainHandler),
     ('/save', SaveTranslation),
     ('/translate', GetTranslation),
+    ('/quiz', QuizHandler),
 ]
