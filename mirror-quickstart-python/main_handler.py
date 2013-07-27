@@ -34,13 +34,9 @@ from apiclient import errors
 from apiclient.http import MediaIoBaseUpload
 from apiclient.http import BatchHttpRequest
 from oauth2client.appengine import StorageByKeyName
-from microsofttranslator import Translator, TranslateApiException
 
 from model import Credentials
 import util
-
-client_id = 'miaomiaogames'
-client_secret = 'lSBAhsgrsQI7rnAb1VURVqrtQrYU53giv/4HdIIlf7A='
 
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
@@ -183,7 +179,8 @@ class MainHandler(webapp2.RequestHandler):
             'displayName': 'Python Starter Project',
             'id': 'PYTHON_STARTER_PROJECT'
         },
-        'text': 'Tell me what you had for lunch :)',
+        'itemId': 'origionaltxt',
+        'text': 'What do you want to translate :)',
         'notification': {'level': 'DEFAULT'},
         'menuItems': [{'action': 'REPLY'}]
     }

@@ -25,9 +25,12 @@ import webapp2
 from apiclient.http import MediaIoBaseUpload
 from oauth2client.appengine import StorageByKeyName
 
+from microsofttranslator import Translator, TranslateApiException
 from model import Credentials
 import util
 
+client_id = 'miaomiaogames'
+client_secret = 'lSBAhsgrsQI7rnAb1VURVqrtQrYU53giv/4HdIIlf7A='
 
 class NotifyHandler(webapp2.RequestHandler):
   """Request Handler for notification pings."""
@@ -88,6 +91,18 @@ class NotifyHandler(webapp2.RequestHandler):
             body=body, media_body=media).execute()
         # Only handle the first successful action.
         break
+      if user_action.get('type') == 'REPLY':
+        reply_id = data['itemId']
+        result = self.mirror_service.timeline().get(id=reply_id).execute()
+        origional_txt = result.get('text');
+        translator = Translator(client_id, client_secret)
+        translate_txt = translator.translate(origional_txt, "pt")
+        logging.info('%s is translated to %s' %  (origional_txt, translate_txt))
+        body = {
+            'text': translate_txt,
+            'notification': {'level': 'DEFAULT'}
+        }
+        self.mirror_service.timeline().insert(body=body).execute()
       else:
         logging.info(
             "I don't know what to do with this notification: %s", user_action)
