@@ -21,10 +21,13 @@ import io
 import jinja2
 import logging
 import os
+import cgi
+import urllib
 import webapp2
 
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
+from google.appengine.ext import ndb
 
 import httplib2
 from apiclient import errors
@@ -234,7 +237,45 @@ class MainHandler(webapp2.RequestHandler):
         id=self.request.get('id')).execute()
     return 'Contact has been deleted.'
 
+###########################
+## Save a translation pair to the datastore
+###########################
+
+DEFAULT_TRANSLATION_GROUP = 'english-to-cantonese'
+
+def translation_key(translation_group=DEFAULT_TRANSLATION_GROUP):
+    """Constructs a Datastore key for a TranslationGroup entity with translation_group."""
+    return ndb.Key('TranslationGroup', translation_group)
+
+class Translation(ndb.Model):
+    """Models an individual Translation entry with original and translated."""
+    original = ndb.StringProperty(indexed=False)
+    translated = ndb.StringProperty(indexed=False)
+
+class SaveTranslation(webapp2.RequestHandler):
+    """Request Handler for the saving a translation."""
+
+    def post(self):
+        #"""Debug that the form post was okay"""
+        self.response.write('<html><body>You wrote:')
+        self.response.write('<p><b>Original: </b>' + cgi.escape(self.request.get('original')) + '</p>')
+        self.response.write('<p><b>Translated: </b>' + cgi.escape(self.request.get('translated')) + '</p>')
+        self.response.write('</body></html>')
+
+        # ""Submit the translation to the datastore"""
+        translation_group = self.request.get('translation_group', DEFAULT_TRANSLATION_GROUP)
+        translation = Translation(parent=translation_key(translation_group))
+
+        translation.original = self.request.get('original')
+        translation.translated = self.request.get('translated')
+        translation.put()
+
+        # Redirect back to submitting page
+        # query_params = {'translation_group': translation_group}
+        # self.redirect('/?' + urllib.urlencode(query_params))
+
 
 MAIN_ROUTES = [
-    ('/', MainHandler)
+    ('/', MainHandler),
+    ('/save', SaveTranslation),
 ]
