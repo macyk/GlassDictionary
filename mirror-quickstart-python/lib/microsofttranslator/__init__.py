@@ -25,7 +25,6 @@ import urllib2
 import warnings
 import logging
 
-
 class ArgumentOutOfRangeException(Exception):
     def __init__(self, message):
         self.message = message.replace('ArgumentOutOfRangeException: ', '')
@@ -137,6 +136,48 @@ class Translator(object):
             raise TranslateApiException(rv)
 
         return rv
+
+    def callaudio(self, url, params):
+        """Calls the given url with the params urlencoded
+        """
+        if not self.access_token:
+            self.access_token = self.get_access_token()
+
+        request = urllib2.Request(
+            "%s?%s" % (url, urllib.urlencode(params)),
+            headers={'Authorization': 'Bearer %s' % self.access_token}
+        )
+        logging.info("the request url is: %s?%s" % (url, urllib.urlencode(params)))
+
+        return request
+
+    def readloud(self, text, to_lang, from_lang=None,
+            content_type='text/plain', format='audio/mp3'):
+        """Translates a text string from one language to another.
+
+        :param text: A string representing the text to translate.
+        :param to_lang: A string representing the language code to
+            translate the text into.
+        :param from_lang: A string representing the language code of the
+            translation text. If left None the response will include the
+            result of language auto-detection. (Default: None)
+        :param content_type: The format of the text being translated.
+            The supported formats are "text/plain" and "text/html". Any HTML
+            needs to be well-formed.
+        :param category: The category of the text to translate. The only
+            supported category is "general".
+        """
+        params = {
+            'text': text.encode('utf8'),
+            'to': to_lang,
+            'contentType': content_type,
+            'format': format,
+            }
+        if from_lang is not None:
+            params['from'] = from_lang
+        return self.callaudio(
+            "http://api.microsofttranslator.com/v2/Http.svc/Speak",
+            params)
 
     def translate(self, text, to_lang, from_lang=None,
             content_type='text/plain', category='general'):

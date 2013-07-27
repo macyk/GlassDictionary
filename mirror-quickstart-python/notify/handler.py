@@ -21,14 +21,24 @@ import io
 import json
 import logging
 import webapp2
-
+import requests
+import urllib
 from apiclient.http import MediaIoBaseUpload
 from oauth2client.appengine import StorageByKeyName
-from microsofttranslator import Translator, TranslateApiException
 
+from microsofttranslator import Translator, TranslateApiException
 from model import Credentials
 import util
 
+client_id = 'miaomiaogames'
+client_secret = 'lSBAhsgrsQI7rnAb1VURVqrtQrYU53giv/4HdIIlf7A='
+
+args = {
+          'client_id': client_id,#your client id here
+          'client_secret': client_secret,#your azure secret here
+          'scope': 'http://api.microsofttranslator.com',
+          'grant_type': 'client_credentials'
+      }
 
 class NotifyHandler(webapp2.RequestHandler):
   """Request Handler for notification pings."""
@@ -59,7 +69,7 @@ class NotifyHandler(webapp2.RequestHandler):
         'notification': {'level': 'DEFAULT'}
     }
     self.mirror_service.timeline().insert(body=body).execute()
-
+    
   def _handle_timeline_notification(self, data):
     """Handle timeline notification."""
     for user_action in data.get('userActions', []):
@@ -89,6 +99,32 @@ class NotifyHandler(webapp2.RequestHandler):
             body=body, media_body=media).execute()
         # Only handle the first successful action.
         break
+      if user_action.get('type') == 'REPLY':
+        reply_id = data['itemId']
+        result = self.mirror_service.timeline().get(id=reply_id).execute()
+        origional_txt = result.get('text');
+        translator = Translator(client_id, client_secret)
+        translate_txt = translator.translate(origional_txt, "zh-CHS")
+        logging.info('here!!!!!!!!!!!!!!!!')
+        oauth_url = 'https://datamarket.accesscontrol.windows.net/v2/OAuth2-13'
+        oauth_junk = json.loads(requests.post(oauth_url,data=urllib.urlencode(args)).content)
+        translation_args = {
+                'text': "hello",
+                'language': 'en'
+                }
+        headers={'Authorization': 'Bearer '+oauth_junk['access_token']}
+        translation_url = "http://api.microsofttranslator.com/V2/Http.svc/Speak?"
+        request_string = '%stext=%s&language=zh-CHS&format=audio/mp3' % (translation_url,translate_txt)
+        translation_result = requests.get(request_string,headers=headers)
+        logging.info('translation_result is %s' ,translation_result.content)
+        audio = translation_result.content
+        audio_media = MediaIoBaseUpload(io.BytesIO(audio), mimetype='audio/mp3', resumable=True)
+        logging.info('%s is translated to %s' %  (origional_txt, translate_txt))
+        body = {
+            'text': translate_txt,
+            'notification': {'level': 'DEFAULT'}
+        }
+        self.mirror_service.timeline().insert(body=body, media_body = audio_media).execute()
       else:
         logging.info(
             "I don't know what to do with this notification: %s", user_action)
