@@ -249,8 +249,13 @@ def translation_key(translation_group=DEFAULT_TRANSLATION_GROUP):
 
 class Translation(ndb.Model):
     """Models an individual Translation entry with original and translated."""
-    original = ndb.StringProperty(indexed=False)
+    # key_name = ndb.StringProperty(indexed=True)
+    original = ndb.StringProperty(indexed=True)
     translated = ndb.StringProperty(indexed=False)
+
+    @classmethod
+    def get_translated(cls, original):
+        return cls.query(cls.original == original)
 
 class SaveTranslation(webapp2.RequestHandler):
     """Request Handler for the saving a translation."""
@@ -265,7 +270,7 @@ class SaveTranslation(webapp2.RequestHandler):
         # ""Submit the translation to the datastore"""
         translation_group = self.request.get('translation_group', DEFAULT_TRANSLATION_GROUP)
         translation = Translation(parent=translation_key(translation_group))
-
+        translation.__key__ = self.request.get('original')
         translation.original = self.request.get('original')
         translation.translated = self.request.get('translated')
         translation.put()
@@ -274,8 +279,40 @@ class SaveTranslation(webapp2.RequestHandler):
         # query_params = {'translation_group': translation_group}
         # self.redirect('/?' + urllib.urlencode(query_params))
 
+class GetTranslation(webapp2.RequestHandler):
+    """Request Handler for the getting a translation."""
+
+    def get(self):
+        """Render the results for a specific translation."""
+        # translation_group = self.request.get('translation_group', DEFAULT_TRANSLATION_GROUP)
+        # translation_query = Translation.query(ancestor=translation_key(translation_group))
+        original = self.request.get('original')
+        translations = Translation.get_translated(original).fetch(1)
+
+        if len(translations) > 0:
+          self._render_template(translations[0])
+        else:
+          self._render_error_template(original)
+
+
+    def _render_template(self, translation=None):
+        """Render the results page template."""
+
+        template_values = { 'original': translation.original,
+                            'translated': translation.translated }
+        template = jinja_environment.get_template('templates/translated.html')
+        self.response.out.write(template.render(template_values))
+
+    def _render_error_template(self, original):
+        """Render the results page template."""
+
+        template_values = { 'original': original}
+        template = jinja_environment.get_template('templates/translated-error.html')
+        self.response.out.write(template.render(template_values))
+
 
 MAIN_ROUTES = [
     ('/', MainHandler),
     ('/save', SaveTranslation),
+    ('/translate', GetTranslation),
 ]
