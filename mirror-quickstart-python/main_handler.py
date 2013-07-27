@@ -299,7 +299,6 @@ class GetTranslation(webapp2.RequestHandler):
         else:
           self._render_error_template(original)
 
-
     def _render_template(self, translation=None):
         """Render the results page template."""
 
@@ -311,7 +310,7 @@ class GetTranslation(webapp2.RequestHandler):
     def _render_error_template(self, original):
         """Render the results page template."""
 
-        template_values = { 'original': original}
+        template_values = { 'original': original }
         template = jinja_environment.get_template('templates/translated-error.html')
         self.response.out.write(template.render(template_values))
 
