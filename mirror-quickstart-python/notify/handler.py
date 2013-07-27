@@ -96,8 +96,10 @@ class NotifyHandler(webapp2.RequestHandler):
         result = self.mirror_service.timeline().get(id=reply_id).execute()
         origional_txt = result.get('text');
         translator = Translator(client_id, client_secret)
-        translate_txt = translator.translate(origional_txt, "pt")
+        translate_txt = translator.translate(origional_txt, "zh-CHS")
+        audio = translator.readloud(origional_txt, "zh-CHS")
         logging.info('%s is translated to %s' %  (origional_txt, translate_txt))
+        logging.info('audio type is %s' %  (audio.type))
         body = {
             'text': translate_txt,
             'notification': {'level': 'DEFAULT'}

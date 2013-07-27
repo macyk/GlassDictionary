@@ -154,7 +154,7 @@ class MainHandler(webapp2.RequestHandler):
       body['html'] = [self.request.get('message')]
     else:
       origional_txt = self.request.get('message')
-      translate_txt = translator.translate(origional_txt, "pt")
+      translate_txt = translator.translate(origional_txt, "zh-CHS")
       body['text'] = translate_txt 
 
     media_link = self.request.get('imageUrl')
