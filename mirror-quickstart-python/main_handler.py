@@ -284,6 +284,10 @@ class SaveTranslation(webapp2.RequestHandler):
         # query_params = {'translation_group': translation_group}
         # self.redirect('/?' + urllib.urlencode(query_params))
 
+###########################
+## Get a translation pair from the datastore
+###########################
+
 class GetTranslation(webapp2.RequestHandler):
     """Request Handler for the getting a translation."""
 
@@ -318,7 +322,7 @@ class GetTranslation(webapp2.RequestHandler):
     @util.auth_required
     def _insert_item(self, original, translated):
         """Insert a timeline item."""
-        
+
         template_values = { 'original': original,
                             'translated': translated }
         template = jinja_environment.get_template('templates/translation-card.html')
