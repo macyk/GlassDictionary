@@ -31,10 +31,13 @@ from apiclient import errors
 from apiclient.http import MediaIoBaseUpload
 from apiclient.http import BatchHttpRequest
 from oauth2client.appengine import StorageByKeyName
+from microsofttranslator import Translator, TranslateApiException
 
 from model import Credentials
 import util
 
+client_id = 'miaomiaogames'
+client_secret = 'lSBAhsgrsQI7rnAb1VURVqrtQrYU53giv/4HdIIlf7A='
 
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
@@ -142,13 +145,18 @@ class MainHandler(webapp2.RequestHandler):
   def _insert_item(self):
     """Insert a timeline item."""
     logging.info('Inserting timeline item')
+    translator = Translator(client_id, client_secret)
+    origional_txt = ''
+    translate_txt = ''
     body = {
         'notification': {'level': 'DEFAULT'}
     }
     if self.request.get('html') == 'on':
       body['html'] = [self.request.get('message')]
     else:
-      body['text'] = self.request.get('message')
+      origional_txt = self.request.get('message')
+      translate_txt = translator.translate(origional_txt, "pt")
+      body['text'] = translate_txt 
 
     media_link = self.request.get('imageUrl')
     if media_link:
@@ -162,7 +170,7 @@ class MainHandler(webapp2.RequestHandler):
 
     # self.mirror_service is initialized in util.auth_required.
     self.mirror_service.timeline().insert(body=body, media_body=media).execute()
-    return  'A timeline item has been inserted.'
+    return  '%s is translated to %s' %  (origional_txt, translate_txt)
 
   def _insert_item_with_action(self):
     """Insert a timeline item user can reply to."""
