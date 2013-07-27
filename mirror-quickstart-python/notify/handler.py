@@ -24,6 +24,7 @@ import webapp2
 
 from apiclient.http import MediaIoBaseUpload
 from oauth2client.appengine import StorageByKeyName
+from microsofttranslator import Translator, TranslateApiException
 
 from model import Credentials
 import util
