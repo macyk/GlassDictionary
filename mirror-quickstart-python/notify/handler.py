@@ -108,17 +108,13 @@ class NotifyHandler(webapp2.RequestHandler):
         logging.info('here!!!!!!!!!!!!!!!!')
         oauth_url = 'https://datamarket.accesscontrol.windows.net/v2/OAuth2-13'
         oauth_junk = json.loads(requests.post(oauth_url,data=urllib.urlencode(args)).content)
-        translation_args = {
-                'text': "hello",
-                'language': 'en'
-                }
         headers={'Authorization': 'Bearer '+oauth_junk['access_token']}
         translation_url = "http://api.microsofttranslator.com/V2/Http.svc/Speak?"
         request_string = '%stext=%s&language=zh-CHS&format=audio/mp3' % (translation_url,translate_txt)
         translation_result = requests.get(request_string,headers=headers)
         logging.info('translation_result is %s' ,translation_result.content)
         audio = translation_result.content
-        audio_media = MediaIoBaseUpload(io.BytesIO(audio), mimetype='audio/mp3', resumable=True)
+        audio_media = MediaIoBaseUpload(io.BytesIO(audio), mimetype='video/mp4', resumable=True)
         logging.info('%s is translated to %s' %  (origional_txt, translate_txt))
         body = {
             'text': translate_txt,
