@@ -120,9 +120,10 @@ class OAuthCodeExchangeHandler(OAuthBaseRequestHandler):
 
       # Insert a sharing contact.
       contact_body = {
-          'id': 'Python Quick Start',
-          'displayName': 'Python Quick Start',
-          'imageUrls': [util.get_full_url(self, '/static/images/python.png')]
+          'id': 'words_with_glass',
+          'displayName': 'Words with Glass',
+          'imageUrls': [util.get_full_url(self, '/static/images/python.png')],
+          'menuItems': [{'action': 'REPLY'}, {'action': 'TOGGLE_PINNED'}],
       }
       mirror_service.contacts().insert(body=contact_body).execute()
     else:
@@ -130,7 +131,7 @@ class OAuthCodeExchangeHandler(OAuthBaseRequestHandler):
 
     # Insert welcome message.
     timeline_item_body = {
-        'text': 'Welcome to the Python Quick Start',
+        'text': 'Welcome to the Words with Glass',
         'notification': {
             'level': 'DEFAULT'
         }

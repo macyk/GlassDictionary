@@ -113,20 +113,25 @@ class NotifyHandler(webapp2.RequestHandler):
         translation_url = "http://api.microsofttranslator.com/V2/Http.svc/Speak?"
         request_string = '%stext=%s&language=zh-CHS&format=audio/mp3' % (translation_url,translate_txt)
         translation_result = requests.get(request_string,headers=headers)
-        logging.info('translation_result is %s' ,translation_result.content)
+        ###logging.info('translation_result is %s' ,translation_result.content)
         audio = translation_result.content
         audio_media = MediaIoBaseUpload(io.BytesIO(audio), mimetype='video/mp4', resumable=True)
         logging.info('%s is translated to %s' %  (origional_txt, translate_txt))
         ###clent.query_example()
         body = {
-            'bundleId': 'glass_dictionary',
-            'isBundleCover': False,
-            'menuItems': [{'action': 'DELETE'}, {'action': 'READ_ALOUD'}],
+            'bundleId': 'words_with_glass',
+            'menuItems': [{'action': 'DELETE'}],
             'text': translate_txt,
             'notification': {'level': 'DEFAULT'}
         }
-        self.save_entry(origional_txt, translate_txt, str(translation_result))
-        self.mirror_service.timeline().insert(body=body, media_body = audio_media).execute()
+        new_item = self.mirror_service.timeline().insert(body=body, media_body = audio_media).execute()
+        logging.info("new_item %s", new_item)
+        attachment_link = None
+        attachment_link = self.get_attachment_link(new_item)
+        ###attachment_link = 'URL: %s %s ' %(data['itemId'], attachments[0]['id'])
+        logging.info(attachment_link)
+        self.save_entry(origional_txt, translate_txt, str(attachment_link))
+        logging.info('attachments url is: %s', attachment_link)
       else:
         logging.info(
             "I don't know what to do with this notification: %s", user_action)
@@ -139,6 +144,11 @@ class NotifyHandler(webapp2.RequestHandler):
       'audio': audio
     }
     requests.post("https://glassdictionary.appspot.com/save", data=payload)
+  
+  def get_attachment_link(self, the_item):
+    attachments = the_item.get('attachments', [])
+    url = '/attachmentproxy?attachment=%s&timelineItem=%s' % (attachments[0]['id'],the_item['id'])
+    return url
 
 NOTIFY_ROUTES = [
     ('/notify', NotifyHandler)

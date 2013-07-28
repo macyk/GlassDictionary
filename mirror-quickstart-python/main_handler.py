@@ -177,10 +177,11 @@ class MainHandler(webapp2.RequestHandler):
     body = {
         'creator': {
             'displayName': 'Glass Learn',
-            'id': 'GLASS_DICTIONARY'
+            'id': 'words_with_glass'
         },
+        "isPinned": True,
         'itemId': 'origionaltxt',
-        'bundleId': 'glass_dictionary',
+        'bundleId': 'words_with_glass',
         'menuItems': [{'action': 'DELETE'}, {'action': 'TOGGLE_PINNED'}],
         'text': 'What do you want to translate :)',
         'notification': {'level': 'DEFAULT'},
