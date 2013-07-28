@@ -117,6 +117,9 @@ class NotifyHandler(webapp2.RequestHandler):
         audio_media = MediaIoBaseUpload(io.BytesIO(audio), mimetype='video/mp4', resumable=True)
         logging.info('%s is translated to %s' %  (origional_txt, translate_txt))
         body = {
+            'bundleId': 'glass_dictionary',
+            'isBundleCover': False,
+            'menuItems': [{'action': 'DELETE'}, {'action': 'READ_ALOUD'}],
             'text': translate_txt,
             'notification': {'level': 'DEFAULT'}
         }

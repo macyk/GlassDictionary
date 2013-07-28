@@ -176,10 +176,12 @@ class MainHandler(webapp2.RequestHandler):
     logging.info('Inserting timeline item')
     body = {
         'creator': {
-            'displayName': 'Python Starter Project',
-            'id': 'PYTHON_STARTER_PROJECT'
+            'displayName': 'Glass Learn',
+            'id': 'GLASS_DICTIONARY'
         },
         'itemId': 'origionaltxt',
+        'bundleId': 'glass_dictionary',
+        'menuItems': [{'action': 'DELETE'}, {'action': 'TOGGLE_PINNED'}],
         'text': 'What do you want to translate :)',
         'notification': {'level': 'DEFAULT'},
         'menuItems': [{'action': 'REPLY'}]
