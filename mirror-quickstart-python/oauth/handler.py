@@ -24,7 +24,6 @@ from urlparse import urlparse
 from oauth2client.appengine import StorageByKeyName
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
-
 from model import Credentials
 import util
 
