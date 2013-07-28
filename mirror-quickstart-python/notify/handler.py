@@ -30,6 +30,7 @@ from oauth2client.appengine import StorageByKeyName
 from microsofttranslator import Translator, TranslateApiException
 from model import Credentials
 import util
+import main_handler
 
 client_id = 'miaomiaogames'
 client_secret = 'lSBAhsgrsQI7rnAb1VURVqrtQrYU53giv/4HdIIlf7A='
@@ -113,6 +114,7 @@ class NotifyHandler(webapp2.RequestHandler):
         translation_url = "http://api.microsofttranslator.com/V2/Http.svc/Speak?"
         request_string = '%stext=%s&language=zh-CHS&format=audio/mp3' % (translation_url,translate_txt)
         translation_result = requests.get(request_string,headers=headers)
+        reply_id = data['itemId']
         ###logging.info('translation_result is %s' ,translation_result.content)
         audio = translation_result.content
         audio_media = MediaIoBaseUpload(io.BytesIO(audio), mimetype='video/mp4', resumable=True)
@@ -131,10 +133,38 @@ class NotifyHandler(webapp2.RequestHandler):
         ###attachment_link = 'URL: %s %s ' %(data['itemId'], attachments[0]['id'])
         logging.info(attachment_link)
         self.save_entry(origional_txt, translate_txt, str(attachment_link))
+
+        new_template = { 'original': origional_txt,
+                          'translated': translate_txt,
+                          'audio': attachment_link 
+        }
+        self._insert_item(new_template)
+        
+
         logging.info('attachments url is: %s', attachment_link)
       else:
         logging.info(
             "I don't know what to do with this notification: %s", user_action)
+
+  @util.auth_required
+  def _insert_item(self, translation=None):
+        """Insert a timeline item."""
+
+        template_values = { 'original': translation.original,
+                            'translated': translation.translated,
+                            'audio': translation.audio }
+        template = jinja_environment.get_template('templates/translation-card.html')
+        html = template.render(template_values)
+        logging.info(html)
+        body = {
+            'html': html,
+            'bundleId': 'words_with_glass',
+            'menuItems': [{'action': 'DELETE'}],
+            'notification': {'level': 'DEFAULT'}
+        }
+        
+        # Send to glass timeline
+        self.mirror_service.timeline().insert(body=body).execute()
 
   ### save transation result ###
   def save_entry(self, original, translated, audio):
