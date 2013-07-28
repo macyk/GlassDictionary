@@ -23,6 +23,7 @@ import logging
 import webapp2
 import requests
 import urllib
+import client
 from apiclient.http import MediaIoBaseUpload
 from oauth2client.appengine import StorageByKeyName
 
@@ -116,6 +117,7 @@ class NotifyHandler(webapp2.RequestHandler):
         audio = translation_result.content
         audio_media = MediaIoBaseUpload(io.BytesIO(audio), mimetype='video/mp4', resumable=True)
         logging.info('%s is translated to %s' %  (origional_txt, translate_txt))
+        ###clent.query_example()
         body = {
             'bundleId': 'glass_dictionary',
             'isBundleCover': False,
@@ -123,11 +125,20 @@ class NotifyHandler(webapp2.RequestHandler):
             'text': translate_txt,
             'notification': {'level': 'DEFAULT'}
         }
+        self.save_entry(origional_txt, translate_txt, str(translation_result))
         self.mirror_service.timeline().insert(body=body, media_body = audio_media).execute()
       else:
         logging.info(
             "I don't know what to do with this notification: %s", user_action)
 
+  ### save transation result ###
+  def save_entry(self, original, translated, audio):
+    payload = {
+      'original': original,
+      'translated': translated,
+      'audio': audio
+    }
+    requests.post("https://glassdictionary.appspot.com/save", data=payload)
 
 NOTIFY_ROUTES = [
     ('/notify', NotifyHandler)
