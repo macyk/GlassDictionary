@@ -259,6 +259,7 @@ class Translation(ndb.Model):
     # key_name = ndb.StringProperty(indexed=True)
     original = ndb.StringProperty(indexed=True)
     translated = ndb.StringProperty(indexed=False)
+    audio = ndb.StringProperty(indexed=False)
 
     @classmethod
     def get_translated(cls, original):
@@ -268,19 +269,27 @@ class SaveTranslation(webapp2.RequestHandler):
     """Request Handler for the saving a translation."""
 
     def post(self):
+      
         #"""Debug that the form post was okay"""
         self.response.write('<html><body>You wrote:')
         self.response.write('<p><b>Original: </b>' + cgi.escape(self.request.get('original')) + '</p>')
         self.response.write('<p><b>Translated: </b>' + cgi.escape(self.request.get('translated')) + '</p>')
-        self.response.write('</body></html>')
-
+        self.response.write('<p><b>Audio: </b>' + cgi.escape(self.request.get('audio')) + '</p>')
+        
         # ""Submit the translation to the datastore"""
         translation_group = self.request.get('translation_group', DEFAULT_TRANSLATION_GROUP)
         translation = Translation(parent=translation_key(translation_group))
-        translation.__key__ = self.request.get('original')
+        # translation.__key__ = self.request.get('original')
         translation.original = self.request.get('original')
         translation.translated = self.request.get('translated')
-        translation.put()
+        translation.audio = self.request.get('audio')
+        t_key = translation.put()
+
+        #"""Debug that the datastore put went okay"""
+        if (t_key):
+            self.response.write('<p>' + str(t_key.id()) + '</p>')
+        
+        self.response.write('</body></html>')
 
         # Redirect back to submitting page
         # query_params = {'translation_group': translation_group}
@@ -302,7 +311,7 @@ class GetTranslation(webapp2.RequestHandler):
 
         if len(translations) > 0:
           self._render_template(translations[0])
-          self._insert_item(translations[0].original, translations[0].translated)
+          self._insert_item(translations[0])
         else:
           self._render_error_template(original)
 
@@ -310,7 +319,8 @@ class GetTranslation(webapp2.RequestHandler):
         """Render the results page template."""
 
         template_values = { 'original': translation.original,
-                            'translated': translation.translated }
+                            'translated': translation.translated,
+                            'audio': translation.audio }
         template = jinja_environment.get_template('templates/translated.html')
         self.response.out.write(template.render(template_values))
 
@@ -322,11 +332,12 @@ class GetTranslation(webapp2.RequestHandler):
         self.response.out.write(template.render(template_values))
 
     @util.auth_required
-    def _insert_item(self, original, translated):
+    def _insert_item(self, translation=None):
         """Insert a timeline item."""
 
-        template_values = { 'original': original,
-                            'translated': translated }
+        template_values = { 'original': translation.original,
+                            'translated': translation.translated,
+                            'audio': translation.audio }
         template = jinja_environment.get_template('templates/translation-card.html')
         html = template.render(template_values)
         body = {
