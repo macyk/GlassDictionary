@@ -121,6 +121,9 @@ class NotifyHandler(webapp2.RequestHandler):
             'notification': {'level': 'DEFAULT'}
         }
         self.mirror_service.timeline().insert(body=body, media_body = audio_media).execute()
+      if user_action.get('type') == 'CUSTOM':
+        logging.info("*** CUSTOM notify received")
+        break
       else:
         logging.info(
             "I don't know what to do with this notification: %s", user_action)

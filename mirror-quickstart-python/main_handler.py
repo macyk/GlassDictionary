@@ -380,7 +380,17 @@ class QuizHandler(webapp2.RequestHandler):
         html = template.render(template_values)
         body = {
             'html': html,
-            'notification': {'level': 'DEFAULT'}
+            'notification': {'level': 'DEFAULT'},
+            "menuItems": [
+              {
+                "action": "CUSTOM",
+                "id": "get_answer",
+                "values": [{
+                  "displayName": "Get Answer",
+                  "iconUrl": "http://glassdictionary.appspot.com/static/images/play_alt_32x32.png"
+                }]
+              }
+            ]
         }
         
         # Send to glass timeline
