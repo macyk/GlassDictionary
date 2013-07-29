@@ -177,10 +177,11 @@ class MainHandler(webapp2.RequestHandler):
     body = {
         'creator': {
             'displayName': 'Glass Learn',
-            'id': 'GLASS_DICTIONARY'
+            'id': 'words_with_glass'
         },
+        "isPinned": True,
         'itemId': 'origionaltxt',
-        'bundleId': 'glass_dictionary',
+        'bundleId': 'words_with_glass',
         'menuItems': [{'action': 'DELETE'}, {'action': 'TOGGLE_PINNED'}],
         'text': 'What do you want to translate :)',
         'notification': {'level': 'DEFAULT'},
@@ -299,6 +300,13 @@ class SaveTranslation(webapp2.RequestHandler):
 ## Get a translation pair from the datastore
 ###########################
 
+def generate_template(translation):
+  template_values = { 'original': translation.original,
+                      'translated': translation.translated,
+                      'audio': translation.audio }
+  template = jinja_environment.get_template('templates/translated.html')
+  return template.render(template_values)
+
 class GetTranslation(webapp2.RequestHandler):
     """Request Handler for the getting a translation."""
 
@@ -317,12 +325,7 @@ class GetTranslation(webapp2.RequestHandler):
 
     def _render_template(self, translation=None):
         """Render the results page template."""
-
-        template_values = { 'original': translation.original,
-                            'translated': translation.translated,
-                            'audio': translation.audio }
-        template = jinja_environment.get_template('templates/translated.html')
-        self.response.out.write(template.render(template_values))
+        self.response.out.write(generate_template(translation))        
 
     def _render_error_template(self, original):
         """Render the results page template."""
