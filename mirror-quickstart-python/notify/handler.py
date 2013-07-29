@@ -75,6 +75,7 @@ class NotifyHandler(webapp2.RequestHandler):
   def _handle_timeline_notification(self, data):
     """Handle timeline notification."""
     for user_action in data.get('userActions', []):
+
       if user_action.get('type') == 'SHARE':
         # Fetch the timeline item.
         item = self.mirror_service.timeline().get(id=data['itemId']).execute()
@@ -101,6 +102,7 @@ class NotifyHandler(webapp2.RequestHandler):
             body=body, media_body=media).execute()
         # Only handle the first successful action.
         break
+
       if user_action.get('type') == 'REPLY':
         reply_id = data['itemId']
         result = self.mirror_service.timeline().get(id=reply_id).execute()
@@ -142,6 +144,12 @@ class NotifyHandler(webapp2.RequestHandler):
         
 
         logging.info('attachments url is: %s', attachment_link)
+        break
+
+      # if user_action.get('type') == 'CUSTOM':
+      #   logging.info("*** CUSTOM notify received")
+      #   break
+
       else:
         logging.info(
             "I don't know what to do with this notification: %s", user_action)
